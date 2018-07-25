@@ -4,8 +4,8 @@
 
 int main(int argc,char **argv)
 {
-	int size,myrank,a=0,sumOfAll=0;
-	int chunkSize,noOfElements=100,startSize,i;
+	int size,myrank,a=0,sumOfAll=0,sum=0;
+	int chunkSize,noOfElements=100,startSize,i,endSize;
 	//MPI_Status status_of_first,status_of_second,status_of_third,status_of_fourth,MPI_Status_IGNORE;
 		
 	MPI_Init(&argc,&argv);
@@ -14,26 +14,35 @@ int main(int argc,char **argv)
 	chunkSize=noOfElements/size;
 	//	sleep(myrank); 	
 	startSize=chunkSize*myrank;
-	printf ("ChunkSize=%d startSize=%d \n",chunkSize,startSize);
+	endSize=startSize+chunkSize;
+
+		
+	for (i=startSize+1;i<=endSize;i++)
+		{
+		
+			sum=sum+i;
+		}
+
+	printf ("ChunkSize=%d startSize=%d endSize=%d local_sum=%d \n",chunkSize,startSize,endSize,sum);
 
 		
 	if (myrank==0)
 		{
-					for (i=startSize;i<chunkSize;i++)
-					{	a=a+startSize;
-						MPI_Send(&a,1,MPI_INT,1,1,MPI_COMM_WORLD);		
+					sumOfAll=sumOfAll+sum;
+					for (i=1;i<size;i++)
+					{		
+						
+						MPI_Recv(&sum,1,MPI_INT,i,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);		
+						sumOfAll=sumOfAll+sum;
+							
 					}
-				
+						printf ("\n SUM_ALL:%d",sumOfAll);							
 		}				
 
-	if(myrank==1)
+	if(myrank>=1)
 		{	
-				
-				for (i=startSize;i<chunkSize;i++)
-				{		sumOfAll+=a;	
-					MPI_Recv(&a,1,MPI_INT,0,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);		
-				}
-				printf ("Sum:%d",sumOfAll);	
+					MPI_Send(&sum,1,MPI_INT,0,1,MPI_COMM_WORLD);
+								
 		}	
 				
 					
